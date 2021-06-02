@@ -1,23 +1,42 @@
 import React, {Component, useEffect, useState} from 'react'
 import axios from 'axios'
 import { Card, Header, Form, Input, Icon } from "semantic-ui-react";
-
+import "normalize.css"
 export default function ToDoListHook(){
+    const [number,setNumber] = useState('')
+    const addNumber = async (e) =>{
+      setNumber(e.target.value)
+    }
+    
+
+    
+  
     const [task,setTask] = useState('')
+    const [task2,setTask2] = useState('')
+    //const [task,setTask] = useState({})
     const [items,SetItems] = useState([])
-    let endpoint = "http://localhost:8080"
+    let endpoint = "http://localhost:8090"
     const handleChange = (event) => {
         setTask(event.target.value)
     }
-    const handleSubmit = () => {
+    const handleChange2 = (event) => {
+      setTask2(event.target.value)
+    }    
+    const handleSubmit = async (e) => {
         // let { task } = this.state;
         // console.log("pRINTING task", this.state.task);
+        e.preventDefault()
         if (task) {
-          axios
+          console.log("Has task")
+        await axios
             .post(
               endpoint + "/api/task",
               {
-                task,
+                
+                //userObject
+                task:task,
+                task2:task2,
+                number:number,
               },
               {
                 headers: {
@@ -26,18 +45,22 @@ export default function ToDoListHook(){
               }
             )
             .then((res) => {
+              console.log("Just test")
+              console.log(res);
               getTask();
               setTask("")
-              console.log(res);
+              setTask2("")
+              setNumber("")
             });
         }
     };
     useEffect(()=>{
         getTask();
     })
-    const getTask = () => {
-        axios.get(endpoint + "/api/task").then((res)=>{
+    const getTask = async () => {
+        await axios.get(endpoint + "/api/task").then((res)=>{
             if(res.data){
+                //console.log("Can show res.data: ",res.data)
                 SetItems(res.data.map((item)=>{
                     let color = "yellow"
                     let style = {
@@ -47,15 +70,28 @@ export default function ToDoListHook(){
                         color = "green"
                         style["textDecorationLine"] = "line-through";
                     }
-                    
+                    let settonumber = parseFloat(item.number)
                     return (
                         <Card key={item._id} color={color} fluid>
                           <Card.Content>
                             <Card.Header textAlign="left">
-                              <div style={style}>{item.task}</div>
+                              <div style={style}>{item.test}</div>
+                              <div style={style}>{item.ttt}</div>
+                              <div style={style}>{settonumber}</div>
+                              {item.subtest ? 
+                              <div style={style}>{item.subtest[0].substring}</div>
+                              :<div style={style}></div>
+                              
+                            }
                             </Card.Header>
           
                             <Card.Meta textAlign="right">
+                              <Icon 
+                                name="cloud download"
+                                color="brown"
+                                onClick={()=>addSubTask(item._id)}
+                              />
+                              <span style={{ paddingRight: 10}}>Add</span>
                               <Icon
                                 name="check circle"
                                 color="green"
@@ -85,9 +121,10 @@ export default function ToDoListHook(){
         })
     }
 
-    const updateTask = (id) => {
-        axios
-            .put(endpoint + "/api/task/" + id, {
+    
+    const updateTask = async (id) => {
+        await axios
+            .put(endpoint + "/api/doneTask/" + id, {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
                 },
@@ -98,8 +135,8 @@ export default function ToDoListHook(){
             })
     }
 
-    const undoTask = (id) => {
-        axios
+    const undoTask = async (id) => {
+        await axios
           .put(endpoint + "/api/undoTask/" + id, {
             headers: {
               "Content-Type": "application/x-www-form-urlencoded",
@@ -110,9 +147,21 @@ export default function ToDoListHook(){
             getTask();
           });
     };
-
-    const deleteTask = (id) => {
-        axios
+    const addSubTask = async (id) => {
+      console.log("id: ",id);
+      await axios
+        .post(endpoint + "/api/task/" + id,{
+          headers: {
+            "Content-Type": "applicaton/x-www-form-urlencoded",
+          },
+        })
+        .then((res) => {
+          console.log(res)
+          getTask();
+        }) 
+    }
+    const deleteTask = async (id) => {
+        await axios
           .delete(endpoint + "/api/deleteTask/" + id, {
             headers: {
               "Content-Type": "application/x-www-form-urlencoded",
@@ -124,6 +173,7 @@ export default function ToDoListHook(){
           });
     };
 
+    
     return (
         <div>
         <div className="row">
@@ -133,6 +183,7 @@ export default function ToDoListHook(){
         </div>
         <div className="row">
           <Form onSubmit={handleSubmit}>
+            <div> 
             <Input
               type="text"
               name="task"
@@ -141,9 +192,36 @@ export default function ToDoListHook(){
               fluid
               placeholder="Create Task"
             />
+            </div>
+            <div>
+              <Input
+                type="text"
+                name="task"
+                onChange={handleChange2}
+                value={task2}
+                fluid
+                placeholder=""
+              />
+            </div>
+            <div>
+              <Input
+                type="text"
+                name="number"
+                onChange={addNumber}
+                value={number}
+                fluid
+                placeholder=""
+              />
+            </div>
+            
+            <div>
+              <input type="submit" value="Submit"/>
+            </div>
             {/* <Button >Create Task</Button> */}
           </Form>
+          
         </div>
+        
         <div className="row">
           <Card.Group>{items}</Card.Group>
         </div>
