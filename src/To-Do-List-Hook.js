@@ -15,7 +15,8 @@ export default function ToDoListHook(){
     const [task2,setTask2] = useState('')
     //const [task,setTask] = useState({})
     const [items,SetItems] = useState([])
-    let endpoint = "https://main.d1qmmhg8f52rkl.amplifyapp.com:8090"
+    //let endpoint = "http://localhost:8080"
+    let endpoint = ""
     const handleChange = (event) => {
         setTask(event.target.value)
     }
